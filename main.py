@@ -8,8 +8,8 @@ from PySide import QtCore
 from PySide import QtGui
 
 from spinete.vis_3d import Vis3D
-from spinete.vis_sensors import VisSensors
-from spinete.vis_instrument import VisInstrument
+from spinete.line_sensors import LineSensor
+from spinete.bar_sensors import BarSensor
 from spinete.beepy import Beepy
 
 
@@ -60,17 +60,19 @@ class MainWidget(QtGui.QWidget):
     def splitter(self):
 
         self.vis_3d = Vis3D()
-        self.vis_instrument = VisInstrument()
-        self.vis_sensors = VisSensors()
+        self.barsensor = BarSensor('TEMP', 'Temperature', 'ºC',
+                                   min_y_range=35)
+        self.linesensor = LineSensor('TEMP', 'Temperature', 'ºC',
+                                     min_y_range=5)
 
         hbox = QtGui.QHBoxLayout(self)
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter1.addWidget(self.vis_3d)
-        splitter1.addWidget(self.vis_instrument)
+        splitter1.addWidget(self.barsensor)
         splitter1.setSizes([800, 200])
         splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter2.addWidget(splitter1)
-        splitter2.addWidget(self.vis_sensors)
+        splitter2.addWidget(self.linesensor)
         splitter2.setSizes([400, 200])
         hbox.addWidget(splitter2)
         self.setLayout(hbox)
@@ -84,19 +86,14 @@ class MainWidget(QtGui.QWidget):
                 if events[socket] != zmq.POLLIN:
                     continue
                 message = socket.recv_pyobj()
-                timestamp, angles, accel, tmp = message
-                x_angle = angles[0]
-                y_angle = angles[1]
-                z_angle = angles[2]
-                x_accel = accel[0]
-                y_accel = accel[1]
-                z_accel = accel[2]
-                self.vis_sensors.push_data(timestamp, angles)
-                self.vis_3d.update_view(x_angle,y_angle,z_angle)
-                self.beep.beep(x_angle)
-                self.vis_instrument.update_view(x_accel, y_accel, z_accel)
+                identifier, timestamp, data = message
+                self.linesensor.push_data(timestamp, data)
+                self.barsensor.push_data(data)
+                #self.vis_3d.update_view(x_angle,y_angle,z_angle)
+                #self.beep.beep(x_angle)
 
-        self.vis_sensors.update_view()
+        self.barsensor.update_view()
+        self.linesensor.update_view()
 
 
 if __name__ == "__main__":

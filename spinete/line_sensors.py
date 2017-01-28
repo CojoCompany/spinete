@@ -2,7 +2,26 @@ import pyqtgraph as pg
 from .array import Array
 
 
-class VisSensors(pg.PlotWidget):
+class LineSensor(pg.PlotWidget):
+    def __init__(self, name, magnitude, unit, color='y',
+                 hide_bottom_axis=True, min_y_range=None):
+        super().__init__()
+        self.setLimits(minYRange=min_y_range)
+        if hide_bottom_axis:
+            self.hideAxis('bottom')
+        self.setLabel('right', magnitude, unit)
+        self.legend = self.addLegend(offset=(50, 20))
+        self.value = self.plot(pen=color, name=name)
+        self.array = Array(2)
+
+    def push_data(self, timestamp, data):
+        self.array.push_data([timestamp, data])
+
+    def update_view(self):
+        self.value.setData(self.array.view)
+
+
+class XYZSensor(pg.PlotWidget):
     def __init__(self):
         super().__init__()
 
