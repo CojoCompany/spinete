@@ -2,4 +2,4 @@ __pycache__
 *.swp
 *.pyc
 .idea/
-.ipconfig
+config.yaml

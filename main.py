@@ -1,12 +1,17 @@
 import sys
+import socket
+from ipaddress import ip_address
+
 import zmq
+import yaml
 from PySide import QtCore
 from PySide import QtGui
+
 from sensorgui.vis_3d import Vis3D
 from sensorgui.vis_sensors import VisSensors
 from sensorgui.vis_instrument import VisInstrument
-
 from sensorgui.beepy import Beepy
+
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -28,9 +33,13 @@ class MainWidget(QtGui.QWidget):
         self.splitter()
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
-        with open('.ipconfig') as f:
-            ipconfig = f.readlines()[0].strip()
-        self.subscriber.connect(ipconfig)
+        server = yaml.load(open('config.yaml'))['server']
+        host = server['host']
+        try:
+            ip_address(host)
+        except ValueError:
+            host = socket.gethostbyname(host)
+        self.subscriber.connect('tcp://{}:{}'.format(host, server['port']))
         self.subscriber.setsockopt_string(zmq.SUBSCRIBE, '')
         self.poller = zmq.Poller()
         self.poller.register(self.subscriber, zmq.POLLIN)
