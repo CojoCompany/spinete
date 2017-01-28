@@ -18,7 +18,11 @@ class MainWindow(QtGui.QMainWindow):
         super().__init__()
         self.setWindowTitle('Spinete GUI')
         self.resize(1000, 600)
-        self.show()
+        fullscreen = yaml.load(open('config.yaml'))['gui']['fullscreen']
+        if fullscreen:
+            self.showFullScreen()
+        else:
+            self.show()
         self.main_widget = MainWidget()
         self.setCentralWidget(self.main_widget)
 
