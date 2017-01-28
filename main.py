@@ -7,10 +7,10 @@ import yaml
 from PySide import QtCore
 from PySide import QtGui
 
-from sensorgui.vis_3d import Vis3D
-from sensorgui.vis_sensors import VisSensors
-from sensorgui.vis_instrument import VisInstrument
-from sensorgui.beepy import Beepy
+from spinete.vis_3d import Vis3D
+from spinete.vis_sensors import VisSensors
+from spinete.vis_instrument import VisInstrument
+from spinete.beepy import Beepy
 
 
 class MainWindow(QtGui.QMainWindow):
