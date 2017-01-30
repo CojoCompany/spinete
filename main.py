@@ -60,9 +60,9 @@ class MainWidget(QtGui.QWidget):
     def splitter(self):
 
         self.vis_3d = Vis3D()
-        self.barsensor = BarSensor('TEMP', 'Temperature', 'ºC',
+        self.barsensor = BarSensor('TEMP', 'Temperature', '°C',
                                    min_y_range=35)
-        self.linesensor = LineSensor('TEMP', 'Temperature', 'ºC',
+        self.linesensor = LineSensor('TEMP', 'Temperature', '°C',
                                      min_y_range=5)
 
         hbox = QtGui.QHBoxLayout(self)
