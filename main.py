@@ -4,8 +4,8 @@ from ipaddress import ip_address
 
 import zmq
 import yaml
-from PySide import QtCore
-from PySide import QtGui
+from Qt import QtCore
+from Qt import QtGui
 
 from spinete.vis_3d import Vis3D
 from spinete.line_sensors import LineSensor

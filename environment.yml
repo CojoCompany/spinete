@@ -1,0 +1,11 @@
+name: spinete
+dependencies:
+  - python=3.3
+  - PyQt
+  - numpy
+  - pip:
+    - pyzmq
+    - PyYAML
+    - Qt.py
+    - pyqtgraph
+    - PyOpenGL
