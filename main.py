@@ -1,4 +1,5 @@
 import sys
+import time
 import socket
 from ipaddress import ip_address
 
@@ -34,6 +35,7 @@ class MainWindow(QtGui.QMainWindow):
 class MainWidget(QtGui.QWidget):
     def __init__(self):
         super().__init__()
+        self.buffer = {}
         self.splitter()
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
@@ -60,10 +62,10 @@ class MainWidget(QtGui.QWidget):
     def splitter(self):
 
         self.vis_3d = Vis3D()
-        self.barsensor = BarSensor('TEMP', 'Temperature', '°C',
-                                   min_y_range=35)
+        self.barsensor = BarSensor('HUMI', 'Humidity', '%',
+                                   color='#add8e6', min_y_range=35)
         self.linesensor = LineSensor('TEMP', 'Temperature', '°C',
-                                     min_y_range=5)
+                                     color='#dc381f', min_y_range=5)
 
         hbox = QtGui.QHBoxLayout(self)
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
@@ -78,20 +80,34 @@ class MainWidget(QtGui.QWidget):
         self.setLayout(hbox)
 
     def update_view(self):
+        # TODO: data_period configurable parameter
+        data_period = 0.05
+        # TODO: use exact periods rather than time.time()
+        t0 = time.time()
         while True:
-            events = dict(self.poller.poll(5))
+            diff = (t0 + data_period) - time.time()
+            events = dict(self.poller.poll(diff * 1000))
             if not events:
                 break
             for socket in events:
                 if events[socket] != zmq.POLLIN:
                     continue
                 message = socket.recv_pyobj()
-                identifier, timestamp, data = message
-                self.linesensor.push_data(timestamp, data)
-                self.barsensor.push_data(data)
+                identifier, data = message
+                self.buffer[identifier] = data
                 #self.vis_3d.update_view(x_angle,y_angle,z_angle)
                 #self.beep.beep(x_angle)
 
+        timestamp = time.time()
+        print(timestamp)
+
+        self.linesensor.push_data(timestamp, self.buffer['TEMP'])
+        self.barsensor.push_data(self.buffer['TEMP'])
+
+        # TODO: update view period should be independent from data period
+        #       would it be thread-safe? Otherwise, maybe we should send
+        #       the data to plot from one thread to another. Would that
+        #       be efficient enough?
         self.barsensor.update_view()
         self.linesensor.update_view()
 
@@ -102,6 +118,6 @@ if __name__ == "__main__":
 
     timer = QtCore.QTimer()
     timer.timeout.connect(main_window.update_view)
-    timer.start(30)
+    timer.start(1)
 
     sys.exit(app.exec_())
