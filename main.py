@@ -67,7 +67,7 @@ class MainWidget(QtGui.QWidget):
 
         self.vis_3d = Vis3D()
         self.barsensor = BarSensor('HUMI', 'Humidity', '%',
-                                   color='#add8e6', min_y_range=35)
+                                   color='#add8e6', y_range=(0, 100))
         self.linesensor = LineSensor('TEMP', 'Temperature', '°C',
                                      color='#dc381f', min_y_range=5)
 

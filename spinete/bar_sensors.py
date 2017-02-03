@@ -3,9 +3,11 @@ import pyqtgraph as pg
 
 class BarSensor(pg.PlotWidget):
     def __init__(self, name, magnitude, unit, color='y',
-                 hide_bottom_axis=True, min_y_range=None):
+                 hide_bottom_axis=True, min_y_range=None, y_range=None):
         super().__init__()
         self.setLimits(minYRange=min_y_range)
+        if y_range:
+            self.setRange(yRange=y_range)
         if hide_bottom_axis:
             self.hideAxis('bottom')
         self.setLabel('left', magnitude, unit)
