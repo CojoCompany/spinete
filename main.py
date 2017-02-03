@@ -37,6 +37,10 @@ class MainWidget(QtGui.QWidget):
         super().__init__()
         self.buffer = {}
         self.splitter()
+        refresh = yaml.load(open('config.yaml'))['refresh']
+        self.data_period = refresh['data_period']
+        self.display_period = refresh['display_period']
+        self.data_next_refresh = None
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
         server = yaml.load(open('config.yaml'))['server']
@@ -79,15 +83,14 @@ class MainWidget(QtGui.QWidget):
         hbox.addWidget(splitter2)
         self.setLayout(hbox)
 
-    def update_view(self):
-        # TODO: data_period configurable parameter
-        data_period = 0.05
-        # TODO: use exact periods rather than time.time()
-        t0 = time.time()
+    def update_data(self):
         while True:
-            diff = (t0 + data_period) - time.time()
-            events = dict(self.poller.poll(diff * 1000))
+            current_time = int(round(time.time() * 1000))
+            diff = max(0, self.data_next_refresh - current_time)
+            events = dict(self.poller.poll(diff))
             if not events:
+                timestamp = self.data_next_refresh / 1000
+                self.data_next_refresh += self.data_period
                 break
             for socket in events:
                 if events[socket] != zmq.POLLIN:
@@ -98,16 +101,24 @@ class MainWidget(QtGui.QWidget):
                 #self.vis_3d.update_view(x_angle,y_angle,z_angle)
                 #self.beep.beep(x_angle)
 
-        timestamp = time.time()
-        print(timestamp)
+        print(self.data_next_refresh)
 
         self.linesensor.push_data(timestamp, self.buffer['TEMP'])
         self.barsensor.push_data(self.buffer['TEMP'])
 
-        # TODO: update view period should be independent from data period
-        #       would it be thread-safe? Otherwise, maybe we should send
-        #       the data to plot from one thread to another. Would that
-        #       be efficient enough?
+    def update_view(self):
+        if not self.data_next_refresh:
+            current_time = time.time() * 1000
+            remaining = self.data_period - current_time % self.data_period
+            self.data_next_refresh = int(current_time + remaining)
+        while True:
+            self.update_data()
+            # TODO: update view period should be independent from data period
+            #       would it be thread-safe? Otherwise, maybe we should send
+            #       the data to plot from one thread to another. Would that
+            #       be efficient enough?
+            break
+
         self.barsensor.update_view()
         self.linesensor.update_view()
 
