@@ -92,17 +92,15 @@ class MainWidget(QtGui.QWidget):
     def splitter(self):
 
         self.vis_3d = Vis3D()
-        self.barsensor = self.sensors['HUMI']
-        self.linesensor = self.sensors['TEMP']
 
         hbox = QtGui.QHBoxLayout(self)
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter1.addWidget(self.vis_3d)
-        splitter1.addWidget(self.barsensor)
+        splitter1.addWidget(self.sensors['HUMI'])
         splitter1.setSizes([800, 200])
         splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter2.addWidget(splitter1)
-        splitter2.addWidget(self.linesensor)
+        splitter2.addWidget(self.sensors['TEMP'])
         splitter2.setSizes([400, 200])
         hbox.addWidget(splitter2)
         self.setLayout(hbox)
@@ -127,8 +125,11 @@ class MainWidget(QtGui.QWidget):
 
         print(self.data_next_refresh)
 
-        self.linesensor.push_data(timestamp, self.buffer['TEMP'])
-        self.barsensor.push_data(self.buffer['TEMP'])
+        for identifier, sensor in self.sensors.items():
+            if isinstance(sensor, LineSensor):
+                sensor.push_data(timestamp, self.buffer[identifier])
+            elif isinstance(sensor, BarSensor):
+                sensor.push_data(self.buffer[identifier])
 
     def update_view(self):
         if not self.data_next_refresh:
@@ -143,8 +144,8 @@ class MainWidget(QtGui.QWidget):
             #       be efficient enough?
             break
 
-        self.barsensor.update_view()
-        self.linesensor.update_view()
+        for sensor in self.sensors.values():
+            sensor.update_view()
 
 
 if __name__ == "__main__":
