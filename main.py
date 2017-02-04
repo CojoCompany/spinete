@@ -27,7 +27,6 @@ class MainWindow(QtGui.QMainWindow):
         self.main_widget = MainWidget()
         self.setCentralWidget(self.main_widget)
 
-
     def update_view(self):
         self.main_widget.update_view()
 
@@ -42,6 +41,7 @@ class MainWidget(QtGui.QWidget):
         self.display_period = refresh['display_period']
         self.data_next_refresh = None
 
+        self.references = {}
         self.sensors = {}
         self.load_sensors()
 
@@ -67,6 +67,7 @@ class MainWidget(QtGui.QWidget):
 
         for identifier, sensor in configurations.items():
 
+            reference = sensor['reference']
             sensor_type = sensor['type']
             magnitude = sensor['magnitude']
             unit = sensor['unit']
@@ -77,17 +78,20 @@ class MainWidget(QtGui.QWidget):
 
             if sensor_type == 'line':
                 array_size = int(seconds * 1000) / self.data_period
-                self.sensors[identifier] = \
-                    LineSensor(identifier=identifier, magnitude=magnitude,
-                               unit=unit, color=color, array_size=array_size,
-                               min_y_range=min_y_range, y_range=y_range)
+                sensor = LineSensor(
+                    name=reference, magnitude=magnitude,
+                    unit=unit, color=color, array_size=array_size,
+                    min_y_range=min_y_range, y_range=y_range)
             elif sensor_type == 'bar':
-                self.sensors[identifier] = \
-                    BarSensor(identifier=identifier, magnitude=magnitude,
-                              unit=unit, color=color,
-                              min_y_range=min_y_range, y_range=y_range)
+                sensor = BarSensor(
+                    name=reference, magnitude=magnitude,
+                    unit=unit, color=color,
+                    min_y_range=min_y_range, y_range=y_range)
             else:
                 raise ValueError('Wrong sensor type "%s"' % sensor_type)
+
+            self.sensors[identifier] = sensor
+            self.references[identifier] = reference
 
     def splitter(self):
 
@@ -96,11 +100,12 @@ class MainWidget(QtGui.QWidget):
         hbox = QtGui.QHBoxLayout(self)
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter1.addWidget(self.vis_3d)
-        splitter1.addWidget(self.sensors['HUMI'])
+        splitter1.addWidget(self.sensors['humidity'])
         splitter1.setSizes([800, 200])
         splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter2.addWidget(splitter1)
-        splitter2.addWidget(self.sensors['TEMP'])
+        splitter2.addWidget(self.sensors['temperature'])
+        splitter2.addWidget(self.sensors['light'])
         splitter2.setSizes([400, 200])
         hbox.addWidget(splitter2)
         self.setLayout(hbox)
@@ -118,20 +123,21 @@ class MainWidget(QtGui.QWidget):
                 if events[socket] != zmq.POLLIN:
                     continue
                 message = socket.recv_pyobj()
-                identifier, data = message
-                self.buffer[identifier] = data
+                reference, timestamp, data = message
+                self.buffer[reference] = data
                 #self.vis_3d.update_view(x_angle,y_angle,z_angle)
                 #self.beep.beep(x_angle)
 
         print(self.data_next_refresh)
 
         for identifier, sensor in self.sensors.items():
-            if identifier not in self.buffer:
+            reference = self.references[identifier]
+            if reference not in self.buffer:
                 continue
             if isinstance(sensor, LineSensor):
-                sensor.push_data(timestamp, self.buffer[identifier])
+                sensor.push_data(timestamp, self.buffer[reference])
             elif isinstance(sensor, BarSensor):
-                sensor.push_data(self.buffer[identifier])
+                sensor.push_data(self.buffer[reference])
 
     def update_view(self):
         if not self.data_next_refresh:

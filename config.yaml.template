@@ -7,14 +7,16 @@ server:
     host: '127.0.0.1'
     port: 5000
 sensors:
-    TEMP:
+    temperature:
+        reference: 'T'
         type: "line"
         magnitude: "Temperature"
         unit: "°C"
         color: "#dc381f"
         seconds: 2.
         min_y_range: 5.
-    HUMI:
+    humidity:
+        reference: 'H'
         type: "bar"
         magnitude: "Humidity"
         unit: "%"
