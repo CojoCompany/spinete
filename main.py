@@ -119,8 +119,6 @@ class MainWidget(QtGui.QWidget):
                     continue
                 message = socket.recv_pyobj()
                 identifier, data = message
-                if identifier not in self.buffer:
-                    continue
                 self.buffer[identifier] = data
                 #self.vis_3d.update_view(x_angle,y_angle,z_angle)
                 #self.beep.beep(x_angle)
