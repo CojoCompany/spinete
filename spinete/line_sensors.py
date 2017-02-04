@@ -3,7 +3,7 @@ from .array import Array
 
 
 class LineSensor(pg.PlotWidget):
-    def __init__(self, name, magnitude, unit, color='y',
+    def __init__(self, identifier, magnitude, unit, color='y', array_size=200,
                  hide_bottom_axis=True, min_y_range=None, y_range=None):
         super().__init__()
         self.setLimits(minYRange=min_y_range)
@@ -13,8 +13,8 @@ class LineSensor(pg.PlotWidget):
             self.hideAxis('bottom')
         self.setLabel('right', magnitude, unit)
         self.legend = self.addLegend(offset=(50, 20))
-        self.value = self.plot(pen=color, name=name)
-        self.array = Array(2)
+        self.value = self.plot(pen=color, name=identifier)
+        self.array = Array(2, max_size=array_size)
 
     def push_data(self, timestamp, data):
         self.array.push_data([timestamp, data])

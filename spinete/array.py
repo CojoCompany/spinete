@@ -2,9 +2,9 @@ import numpy
 
 
 class Array():
-    def __init__(self, width, buffer_size=2000, max_size=200):
+    def __init__(self, width, max_size=200, buffer_size_factor=10):
         self.width = width
-        self.buffer_size = buffer_size
+        self.buffer_size = int(round(buffer_size_factor * max_size))
         self.max_size = max_size
         self.size = 0
         self.base = numpy.ndarray((self.buffer_size, self.width))

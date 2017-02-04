@@ -35,12 +35,18 @@ class MainWindow(QtGui.QMainWindow):
 class MainWidget(QtGui.QWidget):
     def __init__(self):
         super().__init__()
+
         self.buffer = {}
-        self.splitter()
         refresh = yaml.load(open('config.yaml'))['refresh']
         self.data_period = refresh['data_period']
         self.display_period = refresh['display_period']
         self.data_next_refresh = None
+
+        self.sensors = {}
+        self.load_sensors()
+
+        self.splitter()
+
         self.context = zmq.Context()
         self.subscriber = self.context.socket(zmq.SUB)
         server = yaml.load(open('config.yaml'))['server']
@@ -56,20 +62,38 @@ class MainWidget(QtGui.QWidget):
 
         self.beep = Beepy()
 
-    def box(self):
+    def load_sensors(self):
+        configurations = yaml.load(open('config.yaml'))['sensors']
 
-        layout = QtGui.QVBoxLayout()
-        self.setLayout(layout)
-        layout.addWidget(pw1)
-        layout.addWidget(pw2)
+        for identifier, sensor in configurations.items():
+
+            sensor_type = sensor['type']
+            magnitude = sensor['magnitude']
+            unit = sensor['unit']
+            color = sensor.get('color', 'r')
+            seconds = sensor.get('seconds', 4)
+            min_y_range = sensor.get('min_y_range', None)
+            y_range = sensor.get('y_range', None)
+
+            if sensor_type == 'line':
+                array_size = int(seconds * 1000) / self.data_period
+                self.sensors[identifier] = \
+                    LineSensor(identifier=identifier, magnitude=magnitude,
+                               unit=unit, color=color, array_size=array_size,
+                               min_y_range=min_y_range, y_range=y_range)
+            elif sensor_type == 'bar':
+                self.sensors[identifier] = \
+                    BarSensor(identifier=identifier, magnitude=magnitude,
+                              unit=unit, color=color,
+                              min_y_range=min_y_range, y_range=y_range)
+            else:
+                raise ValueError('Wrong sensor type "%s"' % sensor_type)
 
     def splitter(self):
 
         self.vis_3d = Vis3D()
-        self.barsensor = BarSensor('HUMI', 'Humidity', '%',
-                                   color='#add8e6', y_range=(0, 100))
-        self.linesensor = LineSensor('TEMP', 'Temperature', '°C',
-                                     color='#dc381f', min_y_range=5)
+        self.barsensor = self.sensors['HUMI']
+        self.linesensor = self.sensors['TEMP']
 
         hbox = QtGui.QHBoxLayout(self)
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
