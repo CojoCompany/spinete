@@ -25,3 +25,11 @@ sensors:
         unit: "%"
         color: "#add8e6"
         y_range: [0, 100]
+    light:
+        reference: 'L'
+        type: "line"
+        magnitude: "Light"
+        unit: "lux"
+        color: "y"
+        seconds: 4.
+        min_y_range: 10.
