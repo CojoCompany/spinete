@@ -8,9 +8,9 @@ import yaml
 from Qt import QtCore
 from Qt import QtGui
 
-from spinete.vis_3d import Vis3D
-from spinete.line_sensors import LineSensor
 from spinete.bar_sensors import BarSensor
+from spinete.line_sensors import LineSensor
+from spinete.euclidean_sensors import EuclideanSensor
 from spinete.beepy import Beepy
 
 
@@ -69,8 +69,8 @@ class MainWidget(QtGui.QWidget):
 
             reference = sensor['reference']
             sensor_type = sensor['type']
-            magnitude = sensor['magnitude']
-            unit = sensor['unit']
+            magnitude = sensor.get('magnitude', None)
+            unit = sensor.get('unit', None)
             color = sensor.get('color', 'r')
             seconds = sensor.get('seconds', 4)
             min_y_range = sensor.get('min_y_range', None)
@@ -87,6 +87,8 @@ class MainWidget(QtGui.QWidget):
                     name=reference, magnitude=magnitude,
                     unit=unit, color=color,
                     min_y_range=min_y_range, y_range=y_range)
+            elif sensor_type == 'euclidean':
+                sensor = EuclideanSensor()
             else:
                 raise ValueError('Wrong sensor type "%s"' % sensor_type)
 
@@ -95,11 +97,9 @@ class MainWidget(QtGui.QWidget):
 
     def splitter(self):
 
-        self.vis_3d = Vis3D()
-
         hbox = QtGui.QHBoxLayout(self)
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        splitter1.addWidget(self.vis_3d)
+        splitter1.addWidget(self.sensors['position'])
         splitter1.addWidget(self.sensors['humidity'])
         splitter1.setSizes([800, 200])
         splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
@@ -125,7 +125,6 @@ class MainWidget(QtGui.QWidget):
                 message = socket.recv_pyobj()
                 reference, timestamp, data = message
                 self.buffer[reference] = data
-                #self.vis_3d.update_view(x_angle,y_angle,z_angle)
                 #self.beep.beep(x_angle)
 
         print(self.data_next_refresh)
@@ -136,7 +135,7 @@ class MainWidget(QtGui.QWidget):
                 continue
             if isinstance(sensor, LineSensor):
                 sensor.push_data(timestamp, self.buffer[reference])
-            elif isinstance(sensor, BarSensor):
+            else:
                 sensor.push_data(self.buffer[reference])
 
     def update_view(self):

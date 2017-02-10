@@ -7,6 +7,9 @@ server:
     host: '127.0.0.1'
     port: 5000
 sensors:
+    position:
+        reference: 'G'
+        type: "euclidean"
     temperature:
         reference: 'T'
         type: "line"

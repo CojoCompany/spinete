@@ -3,16 +3,19 @@ import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 
 
-class Vis3D(gl.GLViewWidget):
+class EuclideanSensor(gl.GLViewWidget):
     def __init__(self):
         super().__init__()
         self.setCameraPosition(distance=40)
         self.add_grid()
         self.add_board()
         #self.add_sea()
-        self.old_x=0
-        self.old_y=0
-        self.old_z=0
+        self.x = 0.
+        self.y = 0.
+        self.z = 0.
+
+    def push_data(self, data):
+        self.x, self.y, self.z = data
 
     def add_grid(self):
         self.grid = gl.GLGridItem()
@@ -68,7 +71,6 @@ class Vis3D(gl.GLViewWidget):
         self.axis.setSize (x=10,y=10,z=10)
         self.addItem(self.axis)
 
-
     def add_sea(self):
         self.removeItem(self.grid)
         z = pg.gaussianFilter(np.random.normal(size=(100,100)), (1,1))
@@ -78,15 +80,8 @@ class Vis3D(gl.GLViewWidget):
         self.sea.translate(-50, -50, -1)
         self.addItem(self.sea)
 
-
-
-
-    def update_view(self, x,y,z):
+    def update_view(self):
         self.board.resetTransform()
-        self.board.rotate(x,x=1, y=0, z=0)
-        self.board.rotate(y,x=0, y=1, z=0)
-        #self.board.rotate(dif_z,x=0, y=0, z=1)
-        self.axis.resetTransform()
-        self.axis.rotate(x, x=1, y=0, z=0)
-        self.axis.rotate(y, x=0, y=1, z=0)
-        #self.axis.rotate(dif_z, x=0, y=0, z=1)
+        self.board.rotate(self.x, x=1, y=0, z=0)
+        self.board.rotate(self.y, x=0, y=1, z=0)
+        self.board.rotate(self.z, x=0, y=0, z=1)
