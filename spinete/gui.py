@@ -110,7 +110,6 @@ class MainWidget(QtGui.QWidget):
                 message = socket.recv_pyobj()
                 reference, timestamp, data = message
                 self.buffer[reference] = data
-                #self.beep.beep(x_angle)
 
         print(self.data_next_refresh)
 
