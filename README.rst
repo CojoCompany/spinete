@@ -10,13 +10,13 @@ A real-time sensor data visualization tool. `Have a look at it <https://www.yout
 Launching Spinete
 =================
 
-Make sure you have `conda-env` installed first:
+Simply install the dependencies:
 
-    conda install -c conda conda-env
+    pip install -r requirements.txt
 
-Then create the virtual environment with:
+And run Spinete:
 
-    conda env create
+    python main.py
 
 
 .. |logo|

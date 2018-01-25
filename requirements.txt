@@ -1,0 +1,6 @@
+numpy
+PyQt5
+pyqtgraph
+PyOpenGL
+PyYAML
+pyzmq
