@@ -1,5 +1,5 @@
-from Qt import QtGui
-from Qt import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtCore
 
 from spinete.gui import run
 

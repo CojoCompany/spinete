@@ -5,8 +5,8 @@ from ipaddress import ip_address
 
 import zmq
 import yaml
-from Qt import QtCore
-from Qt import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtGui
 
 from spinete.bar_sensors import BarSensor
 from spinete.line_sensors import LineSensor
